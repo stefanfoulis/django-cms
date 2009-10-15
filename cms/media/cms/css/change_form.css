@@ -70,3 +70,11 @@ ul#page_form_lang_tabs a:hover {
     color: white;
 }
 
+.page_flags ul li {
+	list-style: none;
+}
+.page_flags ul li label {
+	width: auto;
+}
+
+
