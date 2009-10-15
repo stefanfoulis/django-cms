@@ -17,6 +17,7 @@ from cms.utils.page import get_available_slug, check_title_slugs
 from cms.exceptions import NoHomeFound
 from cms.utils.helpers import reversion_register
 from cms.utils.i18n import get_fallback_languages
+from cms.models.fields import NamedFlagsField
 
 class Page(MpttPublisher):
     """
@@ -61,6 +62,8 @@ class Page(MpttPublisher):
     
     login_required = models.BooleanField(_("login required"),default=False)
     menu_login_required = models.BooleanField(_("menu login required"),default=False, help_text=_("only show this page in the menu if the user is logged in"))
+    
+    page_flags = NamedFlagsField()
     
     # Managers
     objects = PageManager()
@@ -695,6 +698,15 @@ class Page(MpttPublisher):
         self._moderation_value_cahce = moderation_value
         self._moderation_value_cache_for_user_id = user
             
-        return moderation_value 
+        return moderation_value
+    
+    @property
+    def flags(self):
+        r = {}
+        print "flags"
+        for flag, desc in settings.CMS_PAGE_FLAGS:
+            r[flag] = flag in self.page_flags
+        print r
+        return r
         
 reversion_register(Page, follow=["title_set", "cmsplugin_set", "pagepermission_set"])

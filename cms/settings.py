@@ -129,3 +129,6 @@ CMS_MODERATOR = getattr(settings, 'CMS_MODERATOR', False)
 
 #if CMS_MODERATOR and not CMS_PERMISSION:
 #    raise ImproperlyConfigured('CMS Moderator requires permissions to be enabled')
+
+# Custom CMS Flag Field
+CMS_PAGE_FLAGS = getattr(settings, 'CMS_PAGE_FLAGS', ())
