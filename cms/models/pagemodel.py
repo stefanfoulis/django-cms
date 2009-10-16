@@ -703,10 +703,8 @@ class Page(MpttPublisher):
     @property
     def flags(self):
         r = {}
-        print "flags"
         for flag, desc in settings.CMS_PAGE_FLAGS:
             r[flag] = flag in self.page_flags
-        print r
         return r
         
 reversion_register(Page, follow=["title_set", "cmsplugin_set", "pagepermission_set"])
