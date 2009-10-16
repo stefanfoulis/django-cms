@@ -58,12 +58,20 @@ THIS FORK (http://github.com/stefanfoulis/django-cms-2.0/tree/pageflags)
 -------------------------------------
 You can add custom flags to cms pages. Add this in settings.py:
 
-  CMS_PAGE_FLAGS = (
-      ('use_special_stylesheet', 'Use Special Stylesheet') ,
-      ('put_search_box_on_page','Put Searchbox on Page'),
-      ('is_highlighted_in_navigation','is_highlighted_in_navigation'),
-  )
+	CMS_PAGE_FLAGS = (
+	    ('use_special_stylesheet', 'Use Special Stylesheet') ,
+	    ('put_search_box_on_page','Put Searchbox on Page'),
+	    ('is_highlighted_in_navigation','is_highlighted_in_navigation'),
+	)
 
-Now in the page edit view in admin these flags can be edited. In templates they can be accessed like this:
+Now in the page edit view in admin these flags can be edited.
 
-  {% if current_page.put_search_box_on_page %}My Searchbox{% endif %}
+In templates they can be accessed like this:
+
+	{% if current_page.flags.put_search_box_on_page %}My Searchbox{% endif %}
+ 
+Or in python code like this:
+
+	>>>current_page.flags['put_search_box_on_page']
+	True
+
