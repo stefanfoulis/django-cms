@@ -1,11 +1,16 @@
 from django.conf.urls.defaults import *
-from cms import settings
+from django.conf import settings
 from cms.views import details
+
+if settings.APPEND_SLASH:
+    reg = url(r'^(?P<slug>[0-9A-Za-z-_.//]+)/$', details, name='pages-details-by-slug')
+else:
+    reg = url(r'^(?P<slug>[0-9A-Za-z-_.//]+)$', details, name='pages-details-by-slug')
 
 urlpatterns = (
     # Public pages
     url(r'^$', details, {'slug':''}, name='pages-root'),
-    url(r'^(?P<slug>[0-9A-Za-z-_//]+)/$', details, name='pages-details-by-slug'),
+    reg,
 )
 
 if settings.CMS_APPLICATIONS_URLS:

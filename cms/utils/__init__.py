@@ -2,7 +2,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
-from cms import settings
+from django.conf import settings
 
 from cms.utils.i18n import get_default_language
 
@@ -34,22 +34,28 @@ def auto_render(func):
         return render_to_response(t, context, context_instance=RequestContext(request))
     return _dec
 
-def get_template_from_request(request, obj=None):
+def get_template_from_request(request, obj=None, no_current_page=False):
     """
     Gets a valid template from different sources or falls back to the default
     template.
     """
+    template = None
     if len(settings.CMS_TEMPLATES) == 1:
         return settings.CMS_TEMPLATES[0][0]
-    template = request.REQUEST.get('template', None)
+    if "template" in request.REQUEST:
+        template = request.REQUEST['template']
+    if not template and obj is not None:
+        template = obj.get_template()
+    if not template and not no_current_page and hasattr(request, "current_page"):
+        current_page = request.current_page
+        if hasattr(current_page, "get_template"):
+            template = current_page.get_template()
     if template is not None and template in dict(settings.CMS_TEMPLATES).keys():
         if template == settings.CMS_TEMPLATE_INHERITANCE_MAGIC and obj:
             # Happens on admin's request when changing the template for a page
             # to "inherit".
             return obj.get_template()
-        return template
-    if obj is not None:
-        return obj.get_template()
+        return template    
     return settings.CMS_TEMPLATES[0][0]
 
 
@@ -204,7 +210,7 @@ def find_children(target, pages, levels=100, active_levels=0, ancestors=None, se
                 page.descendant = True
             if len(target.childrens):
                 target.childrens[-1].last = False
-            page.ancestors_ascending = list(target.ancestors_ascending) + [target]
+            page.ancestors_ascending = [target] + list(target.ancestors_ascending)
             page.home_pk_cache = target.home_pk_cache
             page.last = True
             target.childrens.append(page)    

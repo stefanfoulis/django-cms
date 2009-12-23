@@ -1,4 +1,4 @@
-from cms import settings
+from django.conf import settings
 from cms.appresolver import applications_page_check
 from cms.utils import auto_render, get_template_from_request, \
     get_language_from_request
@@ -18,16 +18,16 @@ def get_current_page(path, lang, queryset, home_slug, home_tree_id):
     returns: (Page, None) or (None, path_to_alternative language)
     """
     try:
-        if home_slug:
-            queryset = queryset.exclude(Q(title_set__path=home_slug)&Q(tree_id=home_tree_id))
-            home_slug += "/"
-            title_q = Q(title_set__path=path)|(Q(title_set__path=home_slug + path)&Q(tree_id=home_tree_id))
-            
-        else:
-            title_q = Q(title_set__slug=path)
         if settings.CMS_FLAT_URLS:
+            title_q = Q(title_set__slug=path)
             return queryset.filter(title_q & Q(title_set__language=lang)).distinct().select_related()[0], None
         else:
+            if home_slug:
+                queryset = queryset.exclude(Q(title_set__path=home_slug)&Q(tree_id=home_tree_id))
+                home_slug += "/"
+                title_q = Q(title_set__path=path)|(Q(title_set__path=home_slug + path)&Q(tree_id=home_tree_id))
+            else:
+                title_q = Q(title_set__slug=path)
             page = queryset.filter(title_q).distinct().select_related()[0]
             if page:
                 langs = page.get_languages() 
@@ -91,7 +91,7 @@ def details(request, page_id=None, slug=None, template_name=settings.CMS_TEMPLAT
         else:
             current_page = applications_page_check(request)
             #current_page = None
-        template_name = get_template_from_request(request, current_page)
+        template_name = get_template_from_request(request, current_page, no_current_page=True)
     elif not no404:
         if not slug and settings.DEBUG:
             CMS_MEDIA_URL = settings.CMS_MEDIA_URL
@@ -104,7 +104,7 @@ def details(request, page_id=None, slug=None, template_name=settings.CMS_TEMPLAT
         
         redirect_url = current_page.get_redirect(language=lang)
         if redirect_url:
-            if settings.i18n_installed:
+            if settings.i18n_installed and redirect_url[0] == "/":
                 redirect_url = "/%s/%s" % (lang, redirect_url.lstrip("/"))
             # add language prefix to url
             return HttpResponseRedirect(redirect_url)

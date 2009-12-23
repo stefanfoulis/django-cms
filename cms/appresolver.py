@@ -1,9 +1,7 @@
-from django.conf import settings
-from cms import settings as cms_settings 
+from django.conf import settings 
 from django.core.urlresolvers import RegexURLResolver, Resolver404, reverse
-from cms.utils.moderator import get_page_queryset
-from cms.models import Title
-from cms.models.pagemodel import Page
+
+
 from cms.exceptions import NoHomeFound
 from django.contrib.sites.models import Site
 
@@ -11,6 +9,7 @@ def applications_page_check(request, current_page=None, path=None):
     """Tries to find if given path was resolved over application. 
     Applications have higher priority than other cms pages. 
     """
+    from cms.utils.moderator import get_page_queryset
     if current_page:
         return current_page
     if path is None:
@@ -102,7 +101,6 @@ class ApplicationRegexUrlResolver(PageRegexURLResolver):
         if settings.APPEND_SLASH:
             regex += r'/'  
         urlconf_name = title.application_urls
-        
         # assign page_id to resolver, so he knows on which page he was assigned
         self.page_id = title.page_id
         super(ApplicationRegexUrlResolver, self).__init__(regex, urlconf_name, default_kwargs)
@@ -128,7 +126,8 @@ class DynamicURLConfModule(object):
         Caches result, so db lookup is required only once, or when the cache
         is reseted.
         """
-        
+        from cms.models import Title
+        from cms.models.pagemodel import Page
         if not self._urlpatterns:
             # TODO: will this work with multiple sites? how are they exactly
             # implemented ?
@@ -140,7 +139,7 @@ class DynamicURLConfModule(object):
             # use draft(). This can be done, because url patterns are used just 
             # in frontend
             
-            is_draft = not cms_settings.CMS_MODERATOR
+            is_draft = not settings.CMS_MODERATOR
             try:
                 home = Page.objects.get_home()
                 home_titles = home.title_set.all()
@@ -154,7 +153,7 @@ class DynamicURLConfModule(object):
             
             urls = []
             for title in title_qs.filter(application_urls__gt="").select_related():
-                if cms_settings.CMS_FLAT_URLS:
+                if settings.CMS_FLAT_URLS:
                     if title.language in home_slugs:
                         path = title.slug.split(home_slugs[title.language] + "/", 1)[-1]
                     else:
@@ -169,6 +168,8 @@ class DynamicURLConfModule(object):
                 if mixid in included:
                     # don't add the same thing twice
                     continue  
+                if not settings.APPEND_SLASH:
+                    path += '/'  
                 urls.append(ApplicationRegexUrlResolver(path, title))
                 included.append(mixid)
             self._urlpatterns = urls
