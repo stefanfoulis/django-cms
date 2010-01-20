@@ -38,7 +38,7 @@ class NamedFlagsField(models.Field):
     def __init__(self, *args, **kwargs):
         null, blank = kwargs.pop('null',True), kwargs.pop('blank', True)
         choices = kwargs.pop('choices', settings.CMS_PAGE_FLAGS)
-        super(NamedFlagsField, self).__init__(*args, null=True, blank=True, choices=choices, **kwargs)
+        super(NamedFlagsField, self).__init__(null=True, blank=True, choices=choices, *args, **kwargs)
     def get_internal_type(self):
         return 'TextField'
     def south_field_triple(self):
