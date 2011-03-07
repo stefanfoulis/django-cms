@@ -113,3 +113,6 @@ CMS_CACHE_PREFIX = 'cms-'
 
 # Menu cache duration
 MENU_CACHE_DURATION = 60 * 60
+
+# Custom Pageflags
+CMS_PAGE_FLAGS = getattr(settings, 'CMS_PAGE_FLAGS', ())
