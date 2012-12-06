@@ -273,8 +273,15 @@ class PlaceholderAdmin(ModelAdmin):
 
             # plugin positions are 0 based, so just using count here should give us 'last_position + 1'
             position = CMSPlugin.objects.filter(placeholder=placeholder).count()
+            if not plugin.placeholder == placeholder:
+                # the plugin is being moved to a new placeholder, so it must now be a root plugin
+                plugin.parent = None
             plugin.placeholder = placeholder
             plugin.position = position
+            # update the placeholder on all descendant plugins as well
+            for child in plugin.get_descendants():
+                child.placeholder = placeholder
+                child.save()
             plugin.save()
         pos = 0
         if 'ids' in request.POST: # multiple plugins/ reordering

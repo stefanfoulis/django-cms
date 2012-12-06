@@ -1345,6 +1345,9 @@ class PageAdmin(ModelAdmin):
             if not placeholder_slot in placeholders:
                 return HttpResponse(str("error"))
             placeholder = page.placeholders.get(slot=placeholder_slot)
+            if not plugin.placeholder == placeholder:
+                # the plugin is being moved to a new placeholder, so it must now be a root plugin
+                plugin.parent = None
             plugin.placeholder = placeholder
             # plugin positions are 0 based, so just using count here should give us 'last_position + 1'
             position = CMSPlugin.objects.filter(placeholder=placeholder).count()
