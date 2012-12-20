@@ -126,7 +126,7 @@ def configure(**extra):
                 {
                     'code':'pt-br',
                     'name':gettext('Brazilian Portuguese'),
-                    'public':True,
+                    'public':False,
                 },
             ],
             2: [
