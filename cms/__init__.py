@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__version__ = '2.4a1.dev6'
+__version__ = '2.4a1.dev7'
 
 # patch settings 
 try:
