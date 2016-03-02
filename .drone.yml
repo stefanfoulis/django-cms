@@ -1,0 +1,38 @@
+build:
+  image: python:$$PYTHON_VERSION
+  environment:
+    - DJANGO=$$DJANGO_VERSION
+    - DATABASE_URL='$$DATABASE_URL'
+    - SELENIUM=0
+  commands:
+    - apt-get update && apt-get install -y gettext
+    - pip install ipython ipdb
+    - ls -lAF /drone/src
+    - cd /drone/src/
+    - pip install -r "test_requirements/django-$DJANGO.txt"
+    - coverage run --parallel-mode manage.py test $MIGRATE_OPTION
+    - coverage combine
+
+#compose:
+#  postgres:
+#    image: postgres:9.4.5
+#    environment:
+#      - POSTGRES_USER=postgres
+#  mysql:
+#    image: mysql:5.6.27
+#    environment:
+#      - MYSQL_DATABASE=test
+#      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+
+cache:
+  mount:
+    - /drone/site-packages
+
+matrix:
+  PYTHON_VERSION:
+    - 2.7.11
+    - 3.5
+  DJANGO_VERSION:
+    - 1.9
+  DATABASE_URL:
+    - "sqlite://localhost/:memory:"
