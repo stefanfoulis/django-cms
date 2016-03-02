@@ -933,7 +933,7 @@ class PluginsTestCase(PluginsTestBaseCase):
             * cmsplugin_ptr with related_query_name='whatever_foo'
             * cmsplugin_ptr with related_name='whatever_bar'
             * cmsplugin_ptr with related_query_name='whatever_foo' and related_name='whatever_bar'
-        Those plugins are in cms/test_utils/project/pluginapp/reverse_descriptors/models.py
+        Those plugins are in cms/test_utils/project/pluginapp/revdesc/models.py
         """
         page = api.create_page("page", "nav_playground.html", "en")
 

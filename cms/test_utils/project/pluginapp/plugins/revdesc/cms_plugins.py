@@ -5,37 +5,37 @@ from cms.plugin_pool import plugin_pool
 from . import models
 
 
-class ReverseDescUnalteredPlugin(CMSPluginBase):
-    model = models.ReverseDescUnalteredPluginModel
+class RevDescUnalteredP(CMSPluginBase):
+    model = models.RevDescUnalteredPM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescUnalteredPlugin)
+plugin_pool.register_plugin(RevDescUnalteredP)
 
 
-class ReverseDescNoRelatedNamePlugin(CMSPluginBase):
-    model = models.ReverseDescNoRelatedNamePluginModel
+class RevDescNoRelNmeP(CMSPluginBase):
+    model = models.RevDescNoRelNmePM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescNoRelatedNamePlugin)
+plugin_pool.register_plugin(RevDescNoRelNmeP)
 
 
-class ReverseDescNoRelatedQueryNamePlugin(CMSPluginBase):
-    model = models.ReverseDescNoRelatedQueryNamePluginModel
+class RevDescNoRelQNmeP(CMSPluginBase):
+    model = models.RevDescNoRelQNmePM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescNoRelatedQueryNamePlugin)
+plugin_pool.register_plugin(RevDescNoRelQNmeP)
 
 
-class ReverseDescCustomRelatedQueryNamePlugin(CMSPluginBase):
-    model = models.ReverseDescCustomRelatedQueryNamePluginModel
+class RevDescCustomRelQNmeP(CMSPluginBase):
+    model = models.RevDescCustomRelQNmePM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescCustomRelatedQueryNamePlugin)
+plugin_pool.register_plugin(RevDescCustomRelQNmeP)
 
 
-class ReverseDescCustomRelatedNamePlugin(CMSPluginBase):
-    model = models.ReverseDescCustomRelatedNamePluginModel
+class RevDescCustomRelNmeP(CMSPluginBase):
+    model = models.RevDescCustomRelNmePM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescCustomRelatedNamePlugin)
+plugin_pool.register_plugin(RevDescCustomRelNmeP)
 
 
-class ReverseDescCustomRelatedNameAndRelatedQueryNamePlugin(CMSPluginBase):
-    model = models.ReverseDescCustomRelatedNameAndRelatedQueryNamePluginModel
+class RevDescCustomRelNmeAndRelQNmeP(CMSPluginBase):
+    model = models.RevDescCustomRelNmeAndRelQNmePM
     render_template = 'cms/content.html'
-plugin_pool.register_plugin(ReverseDescCustomRelatedNameAndRelatedQueryNamePlugin)
+plugin_pool.register_plugin(RevDescCustomRelNmeAndRelQNmeP)
