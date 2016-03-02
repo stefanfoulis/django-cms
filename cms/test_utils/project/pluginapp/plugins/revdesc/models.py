@@ -7,36 +7,36 @@ from cms.models import CMSPlugin
 # and 1.7 with the too long names otherwise.
 
 
-class RevDescUnalteredPM(CMSPlugin):
+class UnalteredPM(CMSPlugin):
     title = models.CharField(max_length=50)
     search_fields = ['title']
 
 
-class RevDescNoRelNmePM(CMSPlugin):
+class NoRelNmePM(CMSPlugin):
     cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='+', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']
 
 
-class RevDescNoRelQNmePM(CMSPlugin):
+class NoRelQNmePM(CMSPlugin):
     cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_query_name='+', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']
 
 
-class RevDescCustomRelQNmePM(CMSPlugin):
-    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_query_name='revdesc_custom_relqn', parent_link=True)
+class CustomRelQNmePM(CMSPlugin):
+    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_query_name='reldesc_custom_relqn', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']
 
 
-class RevDescCustomRelNmePM(CMSPlugin):
-    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='revdesc_custom_reln', parent_link=True)
+class CustomRelNmePM(CMSPlugin):
+    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='reldesc_custom_reln', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']
 
 
-class RevDescCustomRelNmeAndRelQNmePM(CMSPlugin):
-    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='revdesc_custom_reln2', related_query_name='revdesc_custom_relqn2', parent_link=True)
+class CustomRelNmeAndRelQNmePM(CMSPlugin):
+    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='reldesc_custom_reln2', related_query_name='reldesc_custom_relqn2', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']

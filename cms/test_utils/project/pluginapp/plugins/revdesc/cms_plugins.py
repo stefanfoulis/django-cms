@@ -6,36 +6,36 @@ from . import models
 
 
 class RevDescUnalteredP(CMSPluginBase):
-    model = models.RevDescUnalteredPM
+    model = models.UnalteredPM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescUnalteredP)
 
 
 class RevDescNoRelNmeP(CMSPluginBase):
-    model = models.RevDescNoRelNmePM
+    model = models.NoRelNmePM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescNoRelNmeP)
 
 
 class RevDescNoRelQNmeP(CMSPluginBase):
-    model = models.RevDescNoRelQNmePM
+    model = models.NoRelQNmePM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescNoRelQNmeP)
 
 
 class RevDescCustomRelQNmeP(CMSPluginBase):
-    model = models.RevDescCustomRelQNmePM
+    model = models.CustomRelQNmePM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescCustomRelQNmeP)
 
 
 class RevDescCustomRelNmeP(CMSPluginBase):
-    model = models.RevDescCustomRelNmePM
+    model = models.CustomRelNmePM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescCustomRelNmeP)
 
 
 class RevDescCustomRelNmeAndRelQNmeP(CMSPluginBase):
-    model = models.RevDescCustomRelNmeAndRelQNmePM
+    model = models.CustomRelNmeAndRelQNmePM
     render_template = 'cms/content.html'
 plugin_pool.register_plugin(RevDescCustomRelNmeAndRelQNmeP)
