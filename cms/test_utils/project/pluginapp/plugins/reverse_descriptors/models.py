@@ -33,6 +33,6 @@ class ReverseDescCustomRelatedNamePluginModel(CMSPlugin):
 
 
 class ReverseDescCustomRelatedNameAndRelatedQueryNamePluginModel(CMSPlugin):
-    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='revdesc_custom_reln', related_query_name='revdesc_custom_relqn', parent_link=True)
+    cmsplugin_ptr = models.OneToOneField(CMSPlugin, related_name='revdesc_custom_reln2', related_query_name='revdesc_custom_relqn2', parent_link=True)
     title = models.CharField(max_length=50)
     search_fields = ['title']
