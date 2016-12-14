@@ -1,3 +1,8 @@
+=== 3.4.2.dev5 (experimental) ===
+
+* experimental performance enhancements for sites with a huge amount of pages (10k).
+
+
 === 3.4.2 (unreleased) ===
 
 * Escaped strings in ``close_frame`` JS template.
