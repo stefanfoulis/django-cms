@@ -29,6 +29,11 @@ class Modifier(object):
 
 class NavigationNode(object):
 
+    selected = None
+    sibling = False
+    ancestor = False
+    descendant = False
+
     def __init__(self, title, url, id, parent_id=None, parent_namespace=None,
                  attr=None, visible=True):
         self.children = []  # do not touch
