@@ -19,8 +19,6 @@ from menus.base import Menu
 from menus.exceptions import NamespaceAlreadyRegistered
 from menus.models import CacheKey
 
-import copy
-
 logger = getLogger('menus')
 
 
@@ -166,25 +164,10 @@ class MenuRenderer(object):
         return final_nodes
 
     def _mark_selected(self, nodes):
-        # There /may/ be two nodes that get marked with selected. A published
-        # and a draft version of the node. We'll mark both, later, the unused
-        # one will be removed anyway.
-        sel = []
         for node in nodes:
-            node.sibling = False
-            node.ancestor = False
-            node.descendant = False
-            node_abs_url = node.get_absolute_url()
-            if node_abs_url == self.request.path[:len(node_abs_url)]:
-                if sel:
-                    if len(node_abs_url) > len(sel[0].get_absolute_url()):
-                        sel = [node]
-                    elif len(node_abs_url) == len(sel[0].get_absolute_url()):
-                        sel.append(node)
-                else:
-                    sel = [node]
-        for node in nodes:
-            node.selected = (node in sel)
+            if node.selected is None:
+                node_abs_url = node.get_absolute_url()
+                node.selected = node_abs_url == self.request.path
         return nodes
 
     def apply_modifiers(self, nodes, namespace=None, root_id=None,
@@ -205,7 +188,6 @@ class MenuRenderer(object):
         if not site_id:
             site_id = Site.objects.get_current().pk
         nodes = self._build_nodes(site_id)
-        nodes = copy.deepcopy(nodes)
         nodes = self.apply_modifiers(
             nodes=nodes,
             namespace=namespace,
