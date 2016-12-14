@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.utils.functional import SimpleLazyObject
-from django.utils.translation import get_language
+import functools
 
+from django.core.urlresolvers import reverse
+from django.utils.functional import SimpleLazyObject
 from cms import constants
 from cms.apphook_pool import apphook_pool
 from cms.utils import get_language_from_request
@@ -76,18 +77,18 @@ def get_visible_page_objects(request, pages, site=None):
 def get_visible_pages(request, pages, site=None):
     """Returns the IDs of all visible pages"""
     pages = get_visible_page_objects(request, pages, site)
-    return [page.pk for page in pages]
+
+    for page in pages:
+        yield page.pk
 
 
-def page_to_node(renderer, page, home, cut):
+def page_to_node(renderer, page, home, language):
     """
     Transform a CMS page into a navigation node.
 
     :param renderer: MenuRenderer instance bound to the request
     :param page: the page you wish to transform
     :param home: a reference to the "home" page (the page with path="0001")
-    :param cut: Should we cut page from its parent pages? This means the node will not
-         have a parent anymore.
     """
     # Theses are simple to port over, since they are not calculated.
     # Other attributes will be added conditionally later.
@@ -99,13 +100,10 @@ def page_to_node(renderer, page, home, cut):
     }
 
     parent_id = page.parent_id
-    # Should we cut the Node from its parents?
-    if home and page.parent_id == home.pk and cut:
-        parent_id = None
 
-    # possible fix for a possible problem
-    # if parent_id and not page.parent.get_calculated_status():
-    #    parent_id = None # ????
+    # Should we cut the Node from its parents?
+    if page.parent_id == home.pk and not home.in_navigation:
+        parent_id = None
 
     if page.limit_visibility_in_menu is constants.VISIBILITY_ALL:
         attr['visible_for_authenticated'] = True
@@ -122,16 +120,15 @@ def page_to_node(renderer, page, home, cut):
         elif "{0}:{1}".format(page.navigation_extenders, page.pk) in renderer.menus:
             extenders.append("{0}:{1}".format(page.navigation_extenders, page.pk))
     # Is this page an apphook? If so, we need to handle the apphooks's nodes
-    lang = get_language()
     # Only run this if we have a translation in the requested language for this
     # object. The title cache should have been prepopulated in CMSMenu.get_nodes
     # but otherwise, just request the title normally
-    if not hasattr(page, 'title_cache') or lang in page.title_cache:
-        app_name = page.get_application_urls(fallback=False)
-        if app_name:  # it means it is an apphook
-            app = apphook_pool.get_apphook(app_name)
-            if app:
-                extenders += app.get_menus(page, lang)
+    if language in page.title_cache and page.application_urls:
+        # it means it is an apphook
+        app = apphook_pool.get_apphook(page.application_urls)
+
+        if app:
+            extenders += app.get_menus(page, language)
     exts = []
     for ext in extenders:
         if hasattr(ext, "get_instances"):
@@ -145,19 +142,34 @@ def page_to_node(renderer, page, home, cut):
     if exts:
         attr['navigation_extenders'] = exts
 
+    translation = page.get_title_obj(language)
+
     # Do we have a redirectURL?
-    attr['redirect_url'] = page.get_redirect()  # save redirect URL if any
+    attr['redirect_url'] = translation.redirect  # save redirect URL if any
 
     # Now finally, build the NavigationNode object and return it.
-    ret_node = NavigationNode(
-        page.get_menu_title(),
-        page.get_absolute_url(),
+    ret_node = CMSNavigationNode(
+        translation.menu_title or translation.title,
+        '',
         page.pk,
         parent_id,
         attr=attr,
         visible=page.in_navigation,
+        path=translation.path or translation.slug
     )
     return ret_node
+
+
+class CMSNavigationNode(NavigationNode):
+
+    def __init__(self, *args, **kwargs):
+        self.path = kwargs.pop('path')
+        super(CMSNavigationNode, self).__init__(*args, **kwargs)
+
+    def get_absolute_url(self):
+        if self.attr['is_home']:
+            return reverse('pages-root')
+        return reverse('pages-details-by-slug', kwargs={"slug": self.path})
 
 
 class CMSMenu(Menu):
@@ -180,30 +192,21 @@ class CMSMenu(Menu):
         pages = page_queryset.filter(**filters).order_by("path")
         ids = {}
         nodes = []
-        first = True
-        home_cut = False
-        home_children = []
         home = None
         actual_pages = []
 
         # cache view perms
-        visible_pages = set(get_visible_pages(request, pages, site))
+        visible_pages = frozenset(get_visible_pages(request, pages, site))
         for page in pages:
             # Pages are ordered by path, therefore the first page is the root
             # of the page tree (a.k.a "home")
             if page.pk not in visible_pages:
                 # Don't include pages the user doesn't have access to
                 continue
+
             if not home:
                 home = page
-            if first and page.pk != home.pk:
-                home_cut = True
-            if (home_cut and (page.parent_id == home.pk or
-                    page.parent_id in home_children)):
-                home_children.append(page.pk)
-            if ((page.pk == home.pk and home.in_navigation)
-                    or page.pk != home.pk):
-                first = False
+
             ids[page.id] = page
             actual_pages.append(page)
             page.title_cache = {}
@@ -212,17 +215,26 @@ class CMSMenu(Menu):
         if not hide_untranslated(lang):
             langs.extend(get_fallback_languages(lang))
 
-        titles = list(get_title_queryset(request).filter(
-            page__in=ids, language__in=langs))
-        for title in titles:  # add the title and slugs and some meta data
+        titles = get_title_queryset(request).filter(page__in=ids, language__in=langs)
+
+        for title in titles.iterator():  # add the title and slugs and some meta data
             page = ids[title.page_id]
             page.title_cache[title.language] = title
 
         renderer = self.renderer
 
+        _page_to_node = functools.partial(
+            page_to_node,
+            renderer=renderer,
+            home=home,
+            language=lang,
+        )
+
         for page in actual_pages:
             if page.title_cache:
-                nodes.append(page_to_node(renderer, page, home, home_cut))
+                node = _page_to_node(page=page)
+                node.selected = request.current_page.pk == page.pk
+                nodes.append(node)
         return nodes
 
 
