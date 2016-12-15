@@ -166,6 +166,9 @@ class CMSNavigationNode(NavigationNode):
         self.path = kwargs.pop('path')
         super(CMSNavigationNode, self).__init__(*args, **kwargs)
 
+    def is_selected(self, request):
+        return request.current_page.pk == self.id
+
     def get_absolute_url(self):
         if self.attr['is_home']:
             return reverse('pages-root')
@@ -233,7 +236,6 @@ class CMSMenu(Menu):
         for page in actual_pages:
             if page.title_cache:
                 node = _page_to_node(page=page)
-                node.selected = request.current_page.pk == page.pk
                 nodes.append(node)
         return nodes
 

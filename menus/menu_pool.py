@@ -165,9 +165,7 @@ class MenuRenderer(object):
 
     def _mark_selected(self, nodes):
         for node in nodes:
-            if node.selected is None:
-                node_abs_url = node.get_absolute_url()
-                node.selected = node_abs_url == self.request.path
+            node.selected = node.is_selected(self.request)
         return nodes
 
     def apply_modifiers(self, nodes, namespace=None, root_id=None,
