@@ -167,7 +167,8 @@ class CMSNavigationNode(NavigationNode):
         super(CMSNavigationNode, self).__init__(*args, **kwargs)
 
     def is_selected(self, request):
-        return request.current_page.pk == self.id
+        current_page_id = getattr(request.current_page, 'pk', None)
+        return current_page_id and current_page_id == self.id
 
     def get_absolute_url(self):
         if self.attr['is_home']:
