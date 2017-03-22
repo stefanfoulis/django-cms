@@ -579,10 +579,14 @@ class ContentRenderer(object):
                 is_fallback=inherit,
             )
 
-        placeholders_to_inherit = [pl.slot for pl in placeholders_to_fetch
-                                   if not pl._plugins_cache and pl.slot in slots_w_inheritance]
+        # Inherit only placeholders that have no plugins
+        # or are not cached.
+        placeholders_to_inherit = [
+            pl.slot for pl in placeholders
+            if not getattr(pl, '_plugins_cache', None) and pl.slot in slots_w_inheritance
+        ]
 
-        if placeholders_to_inherit and slots_w_inheritance and page.parent_id:
+        if placeholders_to_inherit and page.parent_id:
             self._preload_placeholders_for_page(
                 page=page.parent,
                 slots=placeholders_to_inherit,
