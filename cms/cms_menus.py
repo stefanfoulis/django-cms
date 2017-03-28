@@ -167,8 +167,15 @@ class CMSNavigationNode(NavigationNode):
         super(CMSNavigationNode, self).__init__(*args, **kwargs)
 
     def is_selected(self, request):
-        current_page_id = getattr(request.current_page, 'pk', None)
-        return current_page_id and current_page_id == self.id
+        # Menu nodes can represent draft or public pages
+        # so its necessary to compare the current id
+        # with both states of the current page
+        try:
+            page_id = request.current_page.pk
+            alt_page_id = request.current_page.publisher_public_id
+        except AttributeError:
+            return False
+        return page_id == self.id or alt_page_id == self.id
 
     def get_absolute_url(self):
         if self.attr['is_home']:
