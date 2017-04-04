@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 import functools
 
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.utils.functional import SimpleLazyObject
+
 from cms import constants
 from cms.apphook_pool import apphook_pool
-from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.helpers import current_site
 from cms.utils.i18n import get_fallback_languages, hide_untranslated
 from cms.utils.permissions import get_view_restrictions
 from cms.utils.page_permissions import user_can_view_all_pages
 from cms.utils.page_resolver import get_page_queryset
-from cms.utils.moderator import get_title_queryset, use_draft
+from cms.utils.moderator import get_title_queryset
+
 from menus.base import Menu, NavigationNode, Modifier
 from menus.menu_pool import menu_pool
 
 
-def get_visible_page_objects(request, pages, site=None):
+def get_visible_page_objects(request, pages, site):
     """
      This code is basically a many-pages-at-once version of
      cms.utils.page_permissions.user_can_view_page
@@ -33,9 +34,6 @@ def get_visible_page_objects(request, pages, site=None):
         # no need to check for page restrictions because if there's some,
         # user is anon and if there is not any, user can't see unrestricted.
         return []
-
-    if not site:
-        site = current_site(request)
 
     if user_can_view_all_pages(user, site):
         return pages
@@ -76,6 +74,10 @@ def get_visible_page_objects(request, pages, site=None):
 
 def get_visible_pages(request, pages, site=None):
     """Returns the IDs of all visible pages"""
+
+    if site is None:
+        site = Site.objects.get_current(request)
+
     pages = get_visible_page_objects(request, pages, site)
 
     for page in pages:
@@ -167,15 +169,11 @@ class CMSNavigationNode(NavigationNode):
         super(CMSNavigationNode, self).__init__(*args, **kwargs)
 
     def is_selected(self, request):
-        # Menu nodes can represent draft or public pages
-        # so its necessary to compare the current id
-        # with both states of the current page
         try:
             page_id = request.current_page.pk
-            alt_page_id = request.current_page.publisher_public_id
         except AttributeError:
             return False
-        return page_id == self.id or alt_page_id == self.id
+        return page_id == self.id
 
     def get_absolute_url(self):
         if self.attr['is_home']:
@@ -186,20 +184,23 @@ class CMSNavigationNode(NavigationNode):
 class CMSMenu(Menu):
 
     def get_nodes(self, request):
+        site = self.renderer.site
+        lang = self.renderer.language
         page_queryset = get_page_queryset(request)
-        site = current_site(request)
-        lang = get_language_from_request(request)
 
         filters = {
             'site': site,
         }
+
         if hide_untranslated(lang, site.pk):
             filters['title_set__language'] = lang
-            if not use_draft(request):
+
+            if not self.renderer.draft_mode_active:
                 filters['title_set__published'] = True
 
-        if not use_draft(request):
+        if not self.renderer.draft_mode_active:
             page_queryset = page_queryset.published()
+
         pages = page_queryset.filter(**filters).order_by("path")
         ids = {}
         nodes = []

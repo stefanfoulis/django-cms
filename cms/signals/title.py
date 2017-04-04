@@ -36,9 +36,6 @@ def pre_save_title(instance, raw, **kwargs):
         page_languages.append(instance.language)
         page.update_languages(page_languages)
 
-    if not page.publisher_is_draft:
-        menu_pool.clear(page.site_id)
-
     if instance.pk and not hasattr(instance, "tmp_path"):
         instance.tmp_path = None
         try:

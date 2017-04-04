@@ -7,7 +7,7 @@ def use_draft(request):
         is_staff = request.user.is_authenticated() and request.user.is_staff
         edit_mode = is_staff and request.session.get('cms_edit', False)
         build_mode = is_staff and request.session.get('cms_build', False)
-        return is_staff and edit_mode or build_mode
+        return edit_mode or build_mode
     return False
 
 

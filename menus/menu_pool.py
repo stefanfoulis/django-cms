@@ -9,11 +9,11 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import NoReverseMatch
-from django.utils.translation import get_language
 from django.utils.translation import ugettext_lazy as _
 
-from cms.utils import get_cms_setting
+from cms.utils import get_cms_setting, get_language_from_request
 from cms.utils.django_load import load
+from cms.utils.moderator import use_draft
 
 from menus.base import Menu
 from menus.exceptions import NamespaceAlreadyRegistered
@@ -103,6 +103,9 @@ class MenuRenderer(object):
         # instance lives.
         self.menus = pool.get_registered_menus(for_rendering=True)
         self.request = request
+        self.language = get_language_from_request(request)
+        self.site = Site.objects.get_current(request)
+        self.draft_mode_active = use_draft(request)
 
     def _build_nodes(self, site_id):
         """
@@ -121,19 +124,32 @@ class MenuRenderer(object):
             else:
                 the node is put at the bottom of the list
         """
-        # Before we do anything, make sure that the menus are expanded.
-        # Cache key management
-        lang = get_language()
-        prefix = getattr(settings, "CMS_CACHE_PREFIX", "menu_cache_")
-        key = "%smenu_nodes_%s_%s" % (prefix, lang, site_id)
+        if not site_id:
+            # Backwards compatibility shim for < 3.5 projects
+            # On 3.5, this method will change to no longer receive
+            # a site id.
+            site_id = self.site.pk
+
+        prefix = getattr(settings, 'CMS_CACHE_PREFIX', 'menu_cache_')
+
+        key = '%smenu_nodes_%s_%s' % (prefix, self.language, site_id)
+
         if self.request.user.is_authenticated():
-            key += "_%s_user" % self.request.user.pk
+            key += '_%s_user' % self.request.user.pk
+
+        if self.draft_mode_active:
+            key += ':draft'
+        else:
+            key += ':public'
+
         cached_nodes = cache.get(key, None)
+
         if cached_nodes:
             return cached_nodes
 
         final_nodes = []
         toolbar = getattr(self.request, 'toolbar', None)
+
         for menu_class_name in self.menus:
             menu = self.get_menu(menu_class_name)
 
@@ -151,8 +167,7 @@ class MenuRenderer(object):
                 logger.error("Menu %s could not be loaded." %
                     menu_class_name, exc_info=True)
             # nodes is a list of navigation nodes (page tree in cms + others)
-            final_nodes += _build_nodes_inner_for_one_menu(
-                nodes, menu_class_name)
+            final_nodes += _build_nodes_inner_for_one_menu(nodes, menu_class_name)
 
         cache.set(key, final_nodes, get_cms_setting('CACHE_DURATIONS')['menus'])
         # We need to have a list of the cache keys for languages and sites that
@@ -160,7 +175,7 @@ class MenuRenderer(object):
         # the database. It's still cheaper than recomputing every time!
         # This way we can selectively invalidate per-site and per-language,
         # since the cache shared but the keys aren't
-        CacheKey.objects.get_or_create(key=key, language=lang, site=site_id)
+        CacheKey.objects.get_or_create(key=key, language=self.language, site=site_id)
         return final_nodes
 
     def _mark_selected(self, nodes):
@@ -183,9 +198,8 @@ class MenuRenderer(object):
         return nodes
 
     def get_nodes(self, namespace=None, root_id=None, site_id=None, breadcrumb=False):
-        if not site_id:
-            site_id = Site.objects.get_current().pk
-        nodes = self._build_nodes(site_id)
+        # TODO: raise a warning that site_id is deprecated
+        nodes = self._build_nodes(site_id=site_id)
         nodes = self.apply_modifiers(
             nodes=nodes,
             namespace=namespace,
@@ -283,7 +297,9 @@ class MenuPool(object):
             cache_keys = CacheKey.objects.get_keys()
         else:
             cache_keys = CacheKey.objects.get_keys(site_id, language)
+
         to_be_deleted = cache_keys.distinct().values_list('key', flat=True)
+
         if to_be_deleted:
             cache.delete_many(to_be_deleted)
             cache_keys.delete()
