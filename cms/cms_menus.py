@@ -79,9 +79,7 @@ def get_visible_pages(request, pages, site=None):
         site = Site.objects.get_current(request)
 
     pages = get_visible_page_objects(request, pages, site)
-
-    for page in pages:
-        yield page.pk
+    return [page.pk for page in pages]
 
 
 def page_to_node(renderer, page, home, language):

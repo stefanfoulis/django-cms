@@ -2,7 +2,6 @@
 
 from cms.models import Title, Page
 from cms.signals.apphook import apphook_pre_title_checker, apphook_post_title_checker, apphook_post_delete_title_checker
-from menus.menu_pool import menu_pool
 
 
 def update_title_paths(instance, **kwargs):
