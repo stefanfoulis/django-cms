@@ -30,4 +30,3 @@ class StaticWithVersionNode(StaticNode):
     def url(self, context):
         url = super(StaticWithVersionNode, self).url(context)
         return static_with_version(url)
-

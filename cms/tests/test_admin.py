@@ -1072,7 +1072,7 @@ class AdminFormsTests(AdminTestsBase):
             # reverse_id form row has an errors class. Django's admin avoids
             # collapsing these, so that the error is visible.
             resp = self.client.post(base.URL_CMS_PAGE_ADVANCED_CHANGE % page2.pk, page2_data)
-            self.assertContains(resp, '<div class="form-row errors reverse_id">')
+            self.assertContains(resp, '<div class="form-row errors field-reverse_id">')
 
     def test_advanced_settings_endpoint(self):
         admin_user = self.get_superuser()
@@ -1259,6 +1259,7 @@ class AdminFormsTests(AdminTestsBase):
     def test_smart_link_published_pages(self):
         admin, staff_guy = self._get_guys()
         page_url = URL_CMS_PAGE_PUBLISHED  # Not sure how to achieve this with reverse...
+        create_page('home', 'col_two.html', 'en', published=True)
 
         with self.login_user_context(staff_guy):
             multi_title_page = create_page('main_title', 'col_two.html', 'en', published=True,
