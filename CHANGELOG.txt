@@ -19,6 +19,8 @@
   instead of the current request site.
 * Fixed a race condition bug where the cache keys on the database were deleted without syncing with the
   cache server and as a result old menu items would continue to be displayed.
+* Fixed a ``DoesNotExist`` db error raised when moving a page marked as published but whose public
+  translation does not exist.
 
 
 === 3.4.3 (2017-04-24) ===
